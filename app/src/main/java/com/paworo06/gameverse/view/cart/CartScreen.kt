@@ -1,4 +1,4 @@
-package com.paworo06.gameverse.ui.cart
+package com.paworo06.gameverse.view.cart
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -30,7 +30,7 @@ val TextMuted = Color(0xFFCCCCCC)             // Texto secundario, sutil
 val ControlButtonBackground = Color(0xFF333333) // Fondo gris oscuro para los controles de cantidad
 
 @Composable
-fun CartScreenStyledMinimal() {
+fun CartScreen() {
 
     // 1. DATOS DE EJEMPLO (Simulación del estado del carrito)
     // Se utiliza 'remember' para que estos datos de ejemplo persistan durante las recomposiciones.
@@ -238,7 +238,7 @@ private fun calculateTotal(items: List<CartItem>): BigDecimal {
 // --- PREVIEW ---
 @Preview(showBackground = true)
 @Composable
-fun PreviewCartScreenStyledMinimal() {
+fun PreviewCartScreen() {
     // Definiciones placeholder internas para que el Preview pueda compilar las clases externas
     data class Game(val id: Int, val name: String, val desc: String, val price: Double, val imageRes: Int)
     data class CartItem (var game: Game, var quanty: Int)
@@ -250,6 +250,6 @@ fun PreviewCartScreenStyledMinimal() {
         primary = PrimaryActionButton,
         surfaceVariant = PrimaryDarkBackground
     )) {
-        CartScreenStyledMinimal()
+        CartScreen()
     }
 }

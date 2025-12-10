@@ -32,9 +32,9 @@ import com.paworo06.gameverse.ui.theme.GameVerseTheme // Usamos tu tema para el 
 
 // --- Constantes de Color (Ajusta estos colores si tienes nombres específicos en Color.kt) ---
 // Simulación de colores oscuros si no están definidos globalmente.
-val PurplePrimary = Color(0xFF7A00FF)
-val BackgroundDark = Color(0xFF121212)
-val BackgroundSurface = Color(0xFF1C1C1C)
+val PurplePrimary = Color(0xFF8C30E8)
+val BackgroundDark = Color(0xFF191121)
+val BackgroundSurface = Color(0xFF282038)
 val TextGray = Color(0xFFAAAAAA)
 val DividerColor = Color(0xFF222222)
 
