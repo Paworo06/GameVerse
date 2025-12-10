@@ -19,6 +19,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Text("Hola Prueba")
+
+            Text("Espabila pablo")
         }
     }
 }
