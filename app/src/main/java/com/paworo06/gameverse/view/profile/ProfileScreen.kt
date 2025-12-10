@@ -1,5 +1,6 @@
 package com.paworo06.gameverse.view.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -19,18 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.paworo06.gameverse.R
 import com.paworo06.gameverse.ui.theme.GameVerseTheme // Usamos tu tema para el Preview
 
 // --- Constantes de Color (Ajusta estos colores si tienes nombres específicos en Color.kt) ---
 // Simulación de colores oscuros si no están definidos globalmente.
-val PurplePrimary = Color(0xFF7A00FF)
-val BackgroundDark = Color(0xFF121212)
-val BackgroundSurface = Color(0xFF1C1C1C)
+val PurplePrimary = Color(0xFF8C30E8)
+val BackgroundDark = Color(0xFF191121)
+val BackgroundSurface = Color(0xFF282038)
 val TextGray = Color(0xFFAAAAAA)
 val DividerColor = Color(0xFF222222)
 
@@ -38,13 +42,15 @@ val DividerColor = Color(0xFF222222)
  * Composable principal que representa toda la pantalla de Perfil.
  * Solo contiene la vista (estructura UI) sin lógica de estado ni eventos.
  */
+// Dentro de ProfileScreen()
 @Composable
 fun ProfileScreen() {
-    // Usamos LazyColumn para que el contenido sea desplazable
+    // ... (código LazyColumn)
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark) // Color de fondo oscuro
+            .background(BackgroundDark)
             .padding(horizontal = 16.dp)
     ) {
         item {
@@ -64,19 +70,24 @@ fun ProfileScreen() {
 
             // 4. Sección Mi Cuenta
             ProfileSectionTitle("Mi Cuenta")
+
+            // REEMPLAZO 1: Usando tu imagen custom
             ProfileOptionItem(
-                icon = Icons.Default.Person,
+                // Usa el ID del recurso que quieres poner.
+                // Asegúrate de que este drawable exista en R.drawable.
+                iconResId = R.drawable.usuario_info,
                 title = "Información de la Cuenta"
             )
 
+            // REEMPLAZO 2: Usando tu imagen custom
             ProfileOptionItem(
-                icon = Icons.Default.FavoriteBorder, // Usamos la versión de contorno para Lista de Deseos
+                // Usa el ID del recurso que quieres poner.
+                iconResId = R.drawable.lista_deseos,
                 title = "Lista de Deseos"
             )
 
             // 7. Divisor
             Divider(color = DividerColor, thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
-
 
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -129,7 +140,7 @@ fun ProfileUserInfoSection(name: String, email: String) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
+                painter = painterResource( id = R.drawable.usuario ),
                 contentDescription = "Avatar",
                 tint = Color.White,
                 modifier = Modifier.size(60.dp)
@@ -180,8 +191,9 @@ fun ProfileSectionTitle(title: String) {
     )
 }
 
+// Cambia ImageVector a Int y usa painterResource para cargar el drawable.
 @Composable
-fun ProfileOptionItem(icon: ImageVector, title: String) {
+fun ProfileOptionItem(iconResId: Int, title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,10 +202,12 @@ fun ProfileOptionItem(icon: ImageVector, title: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Ícono
-        Icon(
-            imageVector = icon,
+        Image( // Usamos Image en lugar de Icon
+            painter = painterResource(id = iconResId),
             contentDescription = title,
-            tint = Color.White,
+            // Aplicamos un ColorFilter para que la imagen se muestre blanca (si es necesario)
+            // Si el drawable ya tiene el color deseado, puedes omitir colorFilter.
+            colorFilter = ColorFilter.tint(Color.White),
             modifier = Modifier.size(24.dp)
         )
 
@@ -207,52 +221,11 @@ fun ProfileOptionItem(icon: ImageVector, title: String) {
             modifier = Modifier.weight(1f)
         )
 
-        // Flecha derecha
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
+        // Flecha derecha (usando el recurso existente)
+        Image(
+            painter = painterResource(id = R.drawable.profile_chevron_right ),
             contentDescription = "Ir",
-            tint = TextGray,
-            modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Composable
-fun ProfileNotificationItem(title: String, isChecked: Boolean) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Ícono de Notificación
-        Icon(
-            imageVector = Icons.Default.Notifications,
-            contentDescription = title,
-            tint = Color.White,
-            modifier = Modifier.size(24.dp)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Título
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 18.sp,
-            modifier = Modifier.weight(1f)
-        )
-
-        // Switch (Estado fijo)
-        Switch(
-            checked = isChecked,
-            onCheckedChange = { /* Sin funcionalidad */ },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = PurplePrimary,
-                checkedTrackColor = PurplePrimary.copy(alpha = 0.5f),
-                uncheckedThumbColor = BackgroundSurface,
-                uncheckedTrackColor = Color.Gray
-            )
+            modifier = Modifier.size(14.dp)
         )
     }
 }
