@@ -1,17 +1,16 @@
 package com.paworo06.gameverse.view.navegation
 
+// Importaciones necesarias
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter.Companion.tint
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,17 +21,18 @@ import com.paworo06.gameverse.ui.theme.GameVerseTheme
 
 // --- Constantes de Color (Ajustadas a tu tema) ---
 val PurplePrimary = Color(0xFF7A00FF)
-val BackgroundDark = Color(0xFF282038) // Color de fondo uniforme
+val BackgroundDark = Color(0xFF282038)
 val TextGray = Color(0xFFAAAAAA)
 
 /**
  * Define cada destino de navegación.
  */
 sealed class BottomNavItem(val route: String, val icon: Int, val label: String) {
-    object Home : BottomNavItem("home", R.drawable.home_icon, "Inicio")
-    object Explore : BottomNavItem("explore", R.drawable.explore_icon, "Explorar")
-    object Cart : BottomNavItem("CartScreen", R.drawable.cart_icon, "Carrito")
-    object Profile : BottomNavItem("ProfileScreen", R.drawable.usuario_info, "Perfil")
+    object Home : BottomNavItem("home_route", R.drawable.home_icon, "Inicio")
+    object Explore : BottomNavItem("explore_route", R.drawable.explore_icon, "Explorar")
+    // usamos estas rutas en el NavHost, deben coincidir.
+    object Cart : BottomNavItem("cart_route", R.drawable.cart_icon, "Carrito")
+    object Profile : BottomNavItem("profile_route", R.drawable.usuario_info, "Perfil")
 }
 
 // Lista de ítems para mostrar en la barra
@@ -46,13 +46,13 @@ val items = listOf(
 /**
  * Composable principal de la Barra de Navegación Inferior.
  *
- * @param selectedRoute La ruta actualmente seleccionada (simula el estado de navegación).
- * @param onItemSelected Función de callback al seleccionar un nuevo ítem.
+ * @param selectedRoute La ruta actualmente seleccionada (obtenida del NavController).
+ * @param onItemSelected Función de callback que ejecuta la navegación en la MainActivity.
  */
 @Composable
 fun BottomNavigationBar(
-    selectedRoute: String = BottomNavItem.Profile.route, // Por defecto, Perfil está activo
-    onItemSelected: (String) -> Unit = {} // Sin funcionalidad real, solo para la vista
+    selectedRoute: String?, // Se acepta null si aún no hay destino
+    onItemSelected: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -67,11 +67,15 @@ fun BottomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
+
                 val isSelected = item.route == selectedRoute
                 BottomNavigationItem(
                     item = item,
                     isSelected = isSelected,
-                    onSelect = { onItemSelected(item.route) }
+                    onSelect = {
+                        // Al hacer clic, se llama a la función pasada por la MainActivity
+                        onItemSelected(item.route)
+                    }
                 )
             }
         }
@@ -87,8 +91,7 @@ fun BottomNavigationItem(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
-    val iconColor = if (isSelected) PurplePrimary else TextGray
-    val textColor = if (isSelected) PurplePrimary else TextGray
+    val color = if (isSelected) PurplePrimary else TextGray
 
     // Contenedor del ítem
     Column(
@@ -98,12 +101,12 @@ fun BottomNavigationItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icono (usamos Image para cargar PNG/JPG y aplicar el color vía tint si es posible)
+        // Icono
         Image(
             painter = painterResource(id = item.icon),
             contentDescription = item.label,
-            // Aplicamos un tinte para simular el cambio de color al seleccionar
-            colorFilter = tint(iconColor),
+            // Aplicamos el tinte al icono
+            colorFilter = ColorFilter.tint(color),
             modifier = Modifier.size(24.dp)
         )
 
@@ -112,7 +115,7 @@ fun BottomNavigationItem(
         // Etiqueta de texto
         Text(
             text = item.label,
-            color = textColor,
+            color = color, // El color del texto también cambia
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal
         )
@@ -124,15 +127,17 @@ fun BottomNavigationItem(
 @Composable
 fun BottomNavigationBarPreview() {
     GameVerseTheme {
-        // Muestra la barra con el perfil seleccionado
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundDark),
             verticalArrangement = Arrangement.Bottom
         ) {
-            // Este es el composable que necesitas usar en tu Scaffold
-            BottomNavigationBar(selectedRoute = BottomNavItem.Profile.route)
+            // Ejemplo: simulamos que el destino 'Home' está seleccionado
+            BottomNavigationBar(
+                selectedRoute = BottomNavItem.Home.route,
+                onItemSelected = { /* No hay navegación real en Preview */ }
+            )
         }
     }
 }
