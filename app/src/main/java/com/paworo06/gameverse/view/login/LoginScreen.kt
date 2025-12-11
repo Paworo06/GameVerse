@@ -50,7 +50,7 @@ fun LoginScreen() {
             // Reemplazamos Icon por Image y usamos painterResource
             Image(
                 // ** IMPORTANTE: Asume que tienes el archivo en res/drawable/gameverse_logo.png
-                painter = painterResource(id = R.drawable.login_logo ),
+                painter = painterResource(id = R.drawable.login_logo),
                 contentDescription = "GameVerse Logo",
                 modifier = Modifier.size(32.dp)
             )
@@ -179,12 +179,6 @@ fun LoginInputField(
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
-    val R = object {
-        val drawable = object {
-            val login_logo =
-                R.drawable.login_logo // Un recurso de Android para el ejemplo
-        }
-    }
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = PrimaryDarkBackground,

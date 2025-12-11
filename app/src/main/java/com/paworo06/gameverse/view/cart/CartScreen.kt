@@ -6,8 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.* // Importación clave para remember, mutableStateOf, getValue, setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,51 +14,72 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// Importaciones de tus modelos de datos
 import com.paworo06.gameverse.data.model.CartItem
 import com.paworo06.gameverse.data.model.Game
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 // --- DEFINICIÓN DE COLORES Y CONSTANTES ---
-// Colores definidos basados en las especificaciones RGB proporcionadas
-val PrimaryDarkBackground = Color(0xFF191121) // Fondo principal oscuro (RGB 25, 17, 33)
-val PrimaryActionButton = Color(0xFF8C30E8)   // Color de acento para el botón de pago (RGB 140, 48, 232)
-val TextLight = Color.White                   // Texto principal claro
-val TextMuted = Color(0xFFCCCCCC)             // Texto secundario, sutil
-val ControlButtonBackground = Color(0xFF333333) // Fondo gris oscuro para los controles de cantidad
+val PrimaryDarkBackground = Color(0xFF191121)
+val PrimaryActionButton = Color(0xFF8C30E8)
+val TextLight = Color.White
+val TextMuted = Color(0xFFCCCCCC)
+val ControlButtonBackground = Color(0xFF333333)
+
+// Datos de ejemplo iniciales (fuera de la composición)
+private fun initialSampleItems(): List<CartItem> {
+    return listOf(
+        CartItem(
+            game = Game(id = 1, name = "Elden Ring", desc = "...", price = 69.99, imageRes = 0),
+            quanty = 1
+        ),
+        CartItem(
+            game = Game(id = 2, name = "Hollow Knight", desc = "...", price = 14.99, imageRes = 2),
+            quanty = 2
+        ),
+        CartItem(
+            game = Game(id = 3, name = "God of War Ragnarök", desc = "...", price = 55.00, imageRes = 3),
+            quanty = 1
+        ),
+    )
+}
 
 @Composable
 fun CartScreen() {
 
-    // 1. DATOS DE EJEMPLO (Simulación del estado del carrito)
-    // Se utiliza 'remember' para que estos datos de ejemplo persistan durante las recomposiciones.
-    val sampleItems = remember {
-        listOf(
-            CartItem(
-                game = Game(id = 1, name = "Elden Ring", desc = "...", price = 69.99, imageRes = 0),
-                quanty = 1
-            ),
-            CartItem(
-                game = Game(id = 2, name = "Hollow Knight", desc = "...", price = 14.99, imageRes = 2),
-                quanty = 2
-            ),
-            CartItem(
-                game = Game(id = 3, name = "God of War Ragnarök", desc = "...", price = 55.00, imageRes = 3),
-                quanty = 1
-            ),
-        )
+    // 1. ESTADO DEL CARRITO: Usamos mutableStateOf para que la lista sea observable.
+    // 'by' permite usar cartItems = ... para actualizar el estado.
+    var cartItems by remember { mutableStateOf(initialSampleItems()) }
+
+    // 2. LÓGICA CENTRAL: Función para actualizar la cantidad de un ítem.
+    fun updateQuantity(itemId: Int, newQuantity: Int) {
+        // Mapeamos la lista actual para encontrar el ítem a modificar
+        cartItems = cartItems.map { item ->
+            if (item.game.id == itemId) {
+                // Devolvemos una COPIA del CartItem con la nueva cantidad.
+                // Esto es crucial para la inmutabilidad y la recomposición.
+                item.copy(quanty = newQuantity)
+            } else {
+                // Devolvemos el ítem sin modificar
+                item
+            }
+        }
     }
 
-    // Cálculo del subtotal usando la función auxiliar
-    val subtotal = calculateTotal(sampleItems)
+    // 3. LÓGICA CENTRAL: Función para eliminar un ítem.
+    fun removeItem(itemId: Int) {
+        // Filtramos la lista, excluyendo el ítem a eliminar. Esto crea una nueva lista.
+        cartItems = cartItems.filter { it.game.id != itemId }
+    }
+
+    // 4. Cálculo del subtotal: Se recalculá automáticamente cada vez que 'cartItems' cambia.
+    val subtotal = calculateTotal(cartItems)
 
     // ESTRUCTURA PRINCIPAL DE LA PANTALLA
-    // Se utiliza Column para apilar el encabezado, la lista de ítems y el resumen de pago.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryDarkBackground) // Aplicación del color de fondo oscuro
+            .background(PrimaryDarkBackground)
             .padding(horizontal = 16.dp)
     ) {
 
@@ -71,26 +91,23 @@ fun CartScreen() {
             color = TextLight,
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 16.dp)
-                .align(Alignment.CenterHorizontally) // Centra el texto
+                .align(Alignment.CenterHorizontally)
         )
 
         // --- CONTENIDO: LISTA DE ÍTEMS ---
-        // Column con verticalScroll: Actúa como la lista desplazable.
         Column(
             modifier = Modifier
-                .weight(1f) // Ocupa todo el espacio vertical disponible
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Itera sobre la lista de productos en el carrito
-            sampleItems.forEach { cartItem ->
-                // Renderiza la fila de cada producto con los controles de cantidad
+            // Itera sobre la lista de estado (cartItems)
+            cartItems.forEach { cartItem ->
+                // Renderiza la fila, pasando las funciones de actualización con el ID del juego.
                 CartItemRowStyledV3(
                     cartItem = cartItem,
-                    // Funciones de callback para manejar eventos (simulando la interacción con el ViewModel)
-                    onQuantityChange = { newQ -> println("Lógica: Cambiar ${cartItem.game.name} a $newQ") },
-                    onRemove = { println("Lógica: Eliminar ítem ${cartItem.game.id}") }
+                    onQuantityChange = { newQ -> updateQuantity(cartItem.game.id, newQ) },
+                    onRemove = { removeItem(cartItem.game.id) }
                 )
-                // Separador sutil entre ítems
                 Divider(color = TextMuted.copy(alpha = 0.3f))
             }
         }
@@ -100,23 +117,21 @@ fun CartScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
-                .background(PrimaryDarkBackground) // Mantiene el fondo consistente
+                .background(PrimaryDarkBackground)
                 .padding(vertical = 8.dp)
         ) {
-            // Fila de Total (Se usa 'Total' para simplificar, aunque el cálculo es del subtotal)
+            // Fila de Total (Se actualiza automáticamente)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Etiqueta "Total"
                 Text(
                     text = "Total:",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = TextLight
                 )
-                // Valor del Total
                 Text(
                     text = "$${subtotal.toPlainString()}",
                     style = MaterialTheme.typography.titleLarge,
@@ -125,18 +140,17 @@ fun CartScreen() {
                 )
             }
 
-            // Separador antes del botón de acción
             Divider(color = TextMuted.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 10.dp))
             Spacer(modifier = Modifier.height(10.dp))
 
             // Botón de FINALIZAR COMPRA
             Button(
                 onClick = { println("Proceder al Pago Total: $subtotal") },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton), // Aplicación del color púrpura fuerte
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                shape = RoundedCornerShape(10.dp), // Esquinas redondeadas
+                shape = RoundedCornerShape(10.dp),
                 contentPadding = PaddingValues(12.dp)
             ) {
                 Text("FINALIZAR COMPRA", color = TextLight, fontWeight = FontWeight.SemiBold)
@@ -150,10 +164,12 @@ fun CartScreen() {
 @Composable
 fun CartItemRowStyledV3(
     cartItem: CartItem,
-    onQuantityChange: (Int) -> Unit, // Callback para cambiar cantidad
-    onRemove: () -> Unit             // Callback para eliminar ítem
+    // La fila recibe la nueva cantidad a establecer (newQ)
+    onQuantityChange: (newQ: Int) -> Unit,
+    onRemove: () -> Unit
 ) {
     val game = cartItem.game
+    // La cantidad ahora se lee directamente del objeto cartItem (que viene del estado global)
     val quantity = cartItem.quanty
 
     Row(
@@ -164,7 +180,6 @@ fun CartItemRowStyledV3(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            // Nombre del juego
             Text(
                 text = game.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -194,9 +209,9 @@ fun CartItemRowStyledV3(
             IconButton(
                 onClick = {
                     if (quantity > 1) {
-                        onQuantityChange(quantity - 1) // Disminuir si es mayor a 1
+                        onQuantityChange(quantity - 1) // Llama al padre para reducir y actualizar la lista
                     } else {
-                        onRemove() // Llamar a la función de remover si llega a 1
+                        onRemove() // Llama al padre para eliminar el ítem
                     }
                 },
                 modifier = Modifier.size(40.dp)
@@ -204,18 +219,18 @@ fun CartItemRowStyledV3(
                 Text("-", color = TextLight, fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
             }
 
-            // Cantidad como Número
+            // Cantidad como Número (Muestra el valor actualizado del estado global)
             Text(
                 text = quantity.toString(),
                 color = TextLight,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 12.dp) // Espacio para separar de los botones
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
 
             // Botón de Aumentar (+)
             IconButton(
-                onClick = { onQuantityChange(quantity + 1) },
+                onClick = { onQuantityChange(quantity + 1) }, // Llama al padre para incrementar y actualizar la lista
                 modifier = Modifier.size(40.dp)
             ) {
                 Text("+", color = TextLight, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
@@ -226,13 +241,10 @@ fun CartItemRowStyledV3(
 
 
 // --- FUNCIÓN AUXILIAR DE LÓGICA ---
-
 private fun calculateTotal(items: List<CartItem>): BigDecimal {
-    // Calcula el subtotal sumando (precio del juego * cantidad) para cada ítem.
-    // Utiliza BigDecimal para manejar la precisión de la moneda.
     return items.sumOf { item ->
         item.game.price.toBigDecimal().multiply(item.quanty.toBigDecimal())
-    }.setScale(2, RoundingMode.HALF_UP) // Redondea a 2 decimales
+    }.setScale(2, RoundingMode.HALF_UP)
 }
 
 // --- PREVIEW ---
@@ -243,7 +255,6 @@ fun PreviewCartScreen() {
     data class Game(val id: Int, val name: String, val desc: String, val price: Double, val imageRes: Int)
     data class CartItem (var game: Game, var quanty: Int)
 
-    // Aplica un tema oscuro con los colores personalizados para simular el entorno real
     MaterialTheme(colorScheme = darkColorScheme(
         background = PrimaryDarkBackground,
         onBackground = TextLight,
