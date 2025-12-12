@@ -44,7 +44,9 @@ val DividerColor = Color(0xFF222222)
  */
 // Dentro de ProfileScreen()
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onNavigateToLogin: () -> Unit
+) {
     // ... (código LazyColumn)
 
     LazyColumn(
@@ -55,7 +57,7 @@ fun ProfileScreen() {
     ) {
         item {
             // 1. Encabezado (Título y Cerrar Sesión)
-            ProfileHeader()
+            ProfileHeader(onLogoutClicked = onNavigateToLogin)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -99,7 +101,9 @@ fun ProfileScreen() {
 // ----------------------------------------------------------------------------------
 
 @Composable
-fun ProfileHeader() {
+fun ProfileHeader(
+    onLogoutClicked: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,7 +124,8 @@ fun ProfileHeader() {
             text = "Cerrar Sesión",
             color = PurplePrimary,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { /* Solo clic fantasma */ }
+            modifier = Modifier.clickable {
+                onLogoutClicked() }
         )
     }
 }
@@ -235,6 +240,6 @@ fun ProfileOptionItem(iconResId: Int, title: String) {
 @Composable
 fun ProfileScreenPreview() {
     GameVerseTheme {
-        ProfileScreen()
+        ProfileScreen(onNavigateToLogin = {})
     }
 }

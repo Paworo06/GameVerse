@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.paworo06.gameverse.ui.theme.GameVerseTheme
 import com.paworo06.gameverse.view.profile.ProfileScreen
 import com.paworo06.gameverse.view.cart.CartScreen
+import com.paworo06.gameverse.view.login.LoginScreen
+import com.paworo06.gameverse.view.explore.ExploreScreen
 import com.paworo06.gameverse.view.navegation.BottomNavigationBar
 
 // Define las posibles pantallas como un Sealed Class para seguridad de tipos
@@ -28,7 +30,12 @@ sealed class ScreenState(val route: String) {
     object Cart : ScreenState("cart_route")
     object Home : ScreenState("home_route")
     object Explore : ScreenState("explore_route")
+
+    object Login : ScreenState("login_route")
+
+    object Register : ScreenState("register_route")
 }
+
 
 // Color de fondo oscuro para el Scaffold
 val BackgroundDark = Color(0xFF121212)
@@ -50,39 +57,70 @@ fun MainAppStructure() {
     // 1. Estado de la pantalla activa
     var currentScreen by remember { mutableStateOf(ScreenState.Cart.route) }
 
-    Scaffold(
-        containerColor = BackgroundDark,
-        bottomBar = {
-            BottomNavigationBar(
-                selectedRoute = currentScreen,
-                // 2. Al hacer clic, simplemente cambiamos la variable de estado
-                onItemSelected = { route ->
-                    currentScreen = route // Esto redibuja el Composable
+    val bottomBarRoutes = listOf(
+        ScreenState.Profile.route,
+        ScreenState.Cart.route,
+        ScreenState.Home.route,
+        ScreenState.Explore.route
+    )
+
+    if (currentScreen in bottomBarRoutes) {
+        Scaffold(
+            containerColor = BackgroundDark,
+            bottomBar = {
+                BottomNavigationBar(
+                    selectedRoute = currentScreen,
+                    // 2. Al hacer clic, simplemente cambiamos la variable de estado
+                    onItemSelected = { route ->
+                        currentScreen = route // Esto redibuja el Composable
+                    }
+                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
+                // 3. Lógica de cambio de pantalla basada en el estado
+                when (currentScreen) {
+                    ScreenState.Profile.route -> ProfileScreen(
+                        onNavigateToLogin = {
+                            currentScreen = ScreenState.Login.route
+                        }
+                    )
+
+                    ScreenState.Cart.route -> CartScreen()
+                    // Puedes usar un placeholder o las pantallas reales aquí
+                    ScreenState.Home.route -> PlaceholderScreen(name = "Inicio")
+
+                    ScreenState.Explore.route -> ExploreScreen()
+
+
+                    ScreenState.Login.route -> LoginScreen(
+                        onLoginSuccess = { currentScreen = ScreenState.Home.route }
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize()
-        ) {
-            // 3. Lógica de cambio de pantalla basada en el estado
-            when (currentScreen) {
-                ScreenState.Profile.route -> ProfileScreen()
-                ScreenState.Cart.route -> CartScreen()
-                // Puedes usar un placeholder o las pantallas reales aquí
-                ScreenState.Home.route -> PlaceholderScreen(name = "Inicio")
-                ScreenState.Explore.route -> PlaceholderScreen(name = "Explorar")
             }
         }
+    } else if (currentScreen == ScreenState.Login.route) {
+        LoginScreen(
+            onLoginSuccess = {
+
+                currentScreen = ScreenState.Home.route
+            }
+        )
     }
 }
+
 
 // *** IMPORTANTE: Necesitas las rutas correctas aquí ***
 // Función PlaceholderScreen (para que compile si no tienes las vistas)
 @Composable
 fun PlaceholderScreen(name: String) {
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(BackgroundDark)) {
         androidx.compose.material3.Text(
             text = "Contenido de la pantalla: $name (Ruta simple)",
             color = Color.White,
