@@ -6,7 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.* // Necesitamos 'runtime' para el Composable, aunque no usemos 'remember'
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,32 +27,32 @@ val TextMuted = Color(0xFFCCCCCC)
 val InputFieldBackground = Color(0xFF282038)
 
 @Composable
-fun SignupScreen(onNavigateToLogin: () -> Unit
-    ) {
-    // --- 1. ESTADOS PARA LOS NUEVOS CAMPOS ---
-    var username by remember { mutableStateOf("") } // NUEVO: Nombre de Usuario
-    var email by remember { mutableStateOf("") }       // NUEVO: Correo Electrónico
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") } // NUEVO: Confirmar Contraseña
+fun SignupScreen(
+    onNavigateToLogin: () -> Unit
+) {
+    // Definimos variables de estado dummy *LOCAMENTE* dentro de esta función
+    // para que los TextFields puedan aceptar la entrada del usuario,
+    // pero no guardarán el estado de forma persistente a nivel de ViewModel ni validarán nada.
+    var currentUsernameValue by remember { mutableStateOf("") }
+    var currentEmailValue by remember { mutableStateOf("") }
+    var currentPasswordValue by remember { mutableStateOf("") }
+    var currentConfirmPasswordValue by remember { mutableStateOf("") }
 
-    // Estado para mostrar errores de validación (ej. contraseñas no coinciden)
-    var errorText by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PrimaryDarkBackground)
             .padding(24.dp)
-            .padding(top = 24.dp) // Ajuste para que el contenido no quede tan pegado al borde
-            .systemBarsPadding(), // Maneja el relleno de la barra de estado
+            .padding(top = 24.dp)
+            .systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // El Scroll es importante ya que tenemos más campos
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f), // Permite que la columna principal tome espacio restante
+                .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -87,20 +87,20 @@ fun SignupScreen(onNavigateToLogin: () -> Unit
                     .padding(bottom = 32.dp)
             )
 
-            // --- CAMPO NUEVO: Nombre de Usuario ---
+            // --- Nombre de Usuario ---
             LoginInputField(
-                value = username,
-                onValueChange = { username = it },
+                value = currentUsernameValue,
+                onValueChange = { currentUsernameValue = it }, // Permite escribir
                 label = "Nombre de Usuario",
                 placeholder = "Elige tu nombre de usuario"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- CAMPO NUEVO: Correo Electrónico ---
+            // --- Correo Electrónico ---
             LoginInputField(
-                value = email,
-                onValueChange = { email = it },
+                value = currentEmailValue,
+                onValueChange = { currentEmailValue = it }, // Permite escribir
                 label = "Correo Electrónico",
                 placeholder = "Escribe tu correo electrónico"
             )
@@ -109,8 +109,8 @@ fun SignupScreen(onNavigateToLogin: () -> Unit
 
             // Campo de Contraseña
             LoginInputField(
-                value = password,
-                onValueChange = { password = it },
+                value = currentPasswordValue,
+                onValueChange = { currentPasswordValue = it }, // Permite escribir
                 label = "Contraseña",
                 placeholder = "Crea tu contraseña",
                 isPassword = true
@@ -118,42 +118,21 @@ fun SignupScreen(onNavigateToLogin: () -> Unit
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- CAMPO NUEVO: Confirmar Contraseña ---
+            // --- Confirmar Contraseña ---
             LoginInputField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = currentConfirmPasswordValue,
+                onValueChange = { currentConfirmPasswordValue = it }, // Permite escribir
                 label = "Confirmar Contraseña",
                 placeholder = "Repite tu contraseña",
                 isPassword = true
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Mostrar mensaje de error si existe
-            errorText?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Botón de REGISTRO
             Button(
-                onClick = {
-                    // Lógica de validación
-                    if (password != confirmPassword) {
-                        errorText = "Las contraseñas no coinciden."
-                    } else if (username.isBlank() || email.isBlank() || password.isBlank()) {
-                        errorText = "Todos los campos son obligatorios."
-                    } else {
-                        errorText = null // Limpiar el error si todo está bien
-                        println("Intento de Registro con Usuario: $username, Correo: $email")
-                        // Aquí llamarías a tu ViewModel para el registro
-                    }
-                },
+                // onClick no hace nada real, solo imprime un mensaje
+                onClick = { println("Botón Registrarse presionado (Sin lógica)") },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,7 +141,7 @@ fun SignupScreen(onNavigateToLogin: () -> Unit
             ) {
                 Text("Registrarse", color = TextLight, fontWeight = FontWeight.SemiBold)
             }
-        } // Fin de Column principal (para el Scroll/espacio)
+        } // Fin de Column principal
 
         // Enlace: ¿Ya tienes una cuenta? Inicia Sesión (AL PIE)
         Row(
@@ -188,9 +167,7 @@ fun SignupScreen(onNavigateToLogin: () -> Unit
     }
 }
 
-// **NOTA:** El componente LoginInputField no necesita cambios, se reutiliza perfectamente.
-
-// --- Componente Auxiliar (Copiado de tu código para completitud) ---
+// --- Componente Auxiliar (MANTENIDO) ---
 @Composable
 fun LoginInputField(
     value: String,
@@ -232,7 +209,7 @@ fun LoginInputField(
 }
 
 
-// --- Preview (Asegúrate de que el R.drawable.login_logo exista) ---
+// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 fun PreviewSignupScreen() {
@@ -241,7 +218,6 @@ fun PreviewSignupScreen() {
         onBackground = TextLight,
         primary = PrimaryActionButton
     )) {
-        // En un entorno de desarrollo, asegúrate de que R.drawable.login_logo exista.
         SignupScreen(onNavigateToLogin = {})
     }
 }
