@@ -96,6 +96,7 @@ fun MainAppStructure() {
 
                     ScreenState.Explore.route -> ExploreScreen()
 
+
                     ScreenState.Login.route -> LoginScreen(
                         onLoginSuccess = { currentScreen = ScreenState.Home.route }
                     )

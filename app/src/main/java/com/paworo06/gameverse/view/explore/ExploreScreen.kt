@@ -48,7 +48,7 @@ fun ExploreScreen() {
     var priceRange by remember { mutableStateOf(0f..100f) }
 
     // Lista original obtenida directamente del repositorio
-    val originalGames = remember { GameRepository.getAllGames() }
+    val originalGames = remember { GameRepository().getAllGames() }
 
     // Lista filtrada: Se recalcula cada vez que un estado observable cambia
     val filteredGames = remember(searchQuery, selectedSort, priceRange) {
@@ -56,7 +56,7 @@ fun ExploreScreen() {
             games = originalGames,
             searchQuery = searchQuery,
             sortOption = selectedSort,
-            priceRange = priceRange
+             priceRange = priceRange
         )
     }
 
@@ -89,10 +89,10 @@ fun ExploreScreen() {
 
             // --- Resultados de la Lista ---
             Text(
-                text = "${filteredGames.size} juegos encontrados",
+               text = "${filteredGames.size} juegos encontrados",
                 color = TextMuted,
                 modifier = Modifier.padding(bottom = 8.dp)
-            )
+           )
 
             LazyColumn(
                 contentPadding = PaddingValues(bottom = 16.dp)
