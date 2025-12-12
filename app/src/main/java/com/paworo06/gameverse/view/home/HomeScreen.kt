@@ -1,63 +1,55 @@
 package com.paworo06.gameverse.view.home
 
+import com.paworo06.gameverse.data.model.Game
+import com.paworo06.gameverse.data.logic.GameRepository
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paworo06.gameverse.R
 import com.paworo06.gameverse.ui.theme.GameVerseTheme
 
 // --- Constantes de Color (Reutilizando las de tu tema oscuro) ---
 val PurplePrimary = Color(0xFF7A00FF)
-val BackgroundDark = Color(0xFF121212)
-val BackgroundSurface = Color(0xFF1C1C1C)
+val BackgroundDark = Color(0xFF282038)
+val BackgroundSurface = Color(0xFF25133D)
 val TextGray = Color(0xFFAAAAAA)
-
-/**
- * Clase de datos simple para simular los juegos (idealmente vendría de data/model/Game.kt)
- */
-data class MockGame(val id: Int, val title: String, val genre: String, val price: String)
-
-// Datos de ejemplo
-private val featuredGames = listOf(
-    MockGame(1, "Cyber Saga 2077", "RPG", "$59.99"),
-    MockGame(2, "Galaxy Blitz", "Shooter", "$49.99"),
-    MockGame(3, "Fantasy Realms", "Strategy", "$39.99"),
-)
-
-private val recentGames = listOf(
-    MockGame(4, "Ninja Clash", "Action", "$19.99"),
-    MockGame(5, "Space Racer", "Racing", "$29.99"),
-    MockGame(6, "Zombie Defense", "Survival", "$9.99"),
-)
-
 
 /**
  * Composable principal de la pantalla de Inicio.
  */
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    // Inyectamos GameRepository. Por defecto usamos una nueva instancia si no se provee.
+    gameRepository: GameRepository = GameRepository()
+) {
+    // 1. Obtener los datos del repositorio
+    val allGames = gameRepository.getAllGames()
+
+    // Simulación: Tomamos los primeros 3 para destacados
+    val featuredGames = allGames.take(3)
+    // Para recientes mostramos TODOS los juegos (así se ven los 5 que tienes)
+    val recentGames = allGames 
+
+    // LazyColumn para toda la pantalla
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -67,9 +59,6 @@ fun HomeScreen() {
         item {
             // 1. Encabezado
             HomeHeader()
-
-            // 2. Barra de Búsqueda
-            SearchInput()
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -82,11 +71,11 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             // 5. Título de Recientes
-            SectionTitle("Novedades y Recientes")
+            SectionTitle("Catálogo Completo") // Cambié el título para reflejar que son todos
         }
 
-        // 6. Lista Vertical de Juegos Recientes
-        items(recentGames) { game ->
+        // 6. Lista Vertical de Juegos
+        items(recentGames, key = { it.id }) { game ->
             RecentGameItem(game = game)
         }
     }
@@ -130,32 +119,6 @@ fun HomeHeader() {
 }
 
 @Composable
-fun SearchInput() {
-    // Barra de búsqueda con estilo oscuro
-    OutlinedTextField(
-        value = "", // Valor fijo, sin funcionalidad de estado aquí
-        onValueChange = { /* Sin funcionalidad */ },
-        placeholder = { Text("Buscar juegos, géneros o consolas...", color = TextGray) },
-        leadingIcon = {
-            Icon(Icons.Default.Search, contentDescription = "Buscar", tint = TextGray)
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = PurplePrimary,
-            unfocusedBorderColor = BackgroundSurface,
-            cursorColor = PurplePrimary,
-            focusedContainerColor = BackgroundSurface,
-            unfocusedContainerColor = BackgroundSurface,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
-        )
-    )
-}
-
-@Composable
 fun SectionTitle(title: String) {
     Text(
         text = title,
@@ -167,7 +130,7 @@ fun SectionTitle(title: String) {
 }
 
 @Composable
-fun FeaturedGamesRow(games: List<MockGame>) {
+fun FeaturedGamesRow(games: List<Game>) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -179,49 +142,49 @@ fun FeaturedGamesRow(games: List<MockGame>) {
 }
 
 @Composable
-fun FeaturedGameCard(game: MockGame) {
+fun FeaturedGameCard(game: Game) {
     Card(
         modifier = Modifier
             .width(200.dp)
-            .height(250.dp)
+            .height(410.dp)
             .clickable { /* Acción de ver detalle */ },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = BackgroundSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Placeholder de imagen del juego (simulada con un Box)
-            Box(
+            Image( 
+                painter = painterResource(id = game.imageRes),
+                contentDescription = game.name,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
-                    .background(PurplePrimary.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(game.title, color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
+                    .height(240.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                 Text(
-                    text = game.title,
+                    text = game.name, 
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = game.genre,
+                    text = game.desc, 
                     color = TextGray,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.weight(1f)) // Empuja el precio hacia abajo
                 Text(
-                    text = game.price,
+                    text = "€${game.price}",
                     color = PurplePrimary,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
         }
@@ -229,7 +192,7 @@ fun FeaturedGameCard(game: MockGame) {
 }
 
 @Composable
-fun RecentGameItem(game: MockGame) {
+fun RecentGameItem(game: Game) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,22 +200,22 @@ fun RecentGameItem(game: MockGame) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Placeholder de imagen (simulada)
-        Box(
+        // Imagen real en la lista
+        Image(
+            painter = painterResource(id = game.imageRes),
+            contentDescription = game.name,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(BackgroundSurface),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("IMG", color = TextGray)
-        }
+                .background(BackgroundSurface)
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = game.title,
+                text = game.name,
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -260,15 +223,17 @@ fun RecentGameItem(game: MockGame) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = game.genre,
+                text = game.desc,
                 color = TextGray,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
         // Precio a la derecha
         Text(
-            text = game.price,
+            text = "€${game.price}",
             color = PurplePrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
@@ -282,7 +247,6 @@ fun RecentGameItem(game: MockGame) {
 @Composable
 fun HomeScreenPreview() {
     GameVerseTheme {
-        // Usa un Box para simular el área segura del Scaffold (sin la barra inferior)
         Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
             HomeScreen()
         }
