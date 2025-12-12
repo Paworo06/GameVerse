@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// Importaciones de tus modelos y repositorio
 import com.paworo06.gameverse.R
 import com.paworo06.gameverse.data.logic.GameRepository
 import com.paworo06.gameverse.data.model.Game
@@ -34,7 +36,7 @@ val TextLight = Color.White
 val TextMuted = Color(0xFFCCCCCC)
 val HighlightButtonActive = Color(0xFF8C30E8)
 
-// Opciones de ordenamiento simplificadas (solo precio)
+// Opciones de ordenamiento (solo precio)
 val sortOptionsPrice = listOf("Menor Precio", "Mayor Precio")
 
 
@@ -44,19 +46,19 @@ fun ExploreScreen() {
     var searchQuery by remember { mutableStateOf("") }
     var filtersVisible by remember { mutableStateOf(false) }
     var selectedSort by remember { mutableStateOf("Menor Precio") }
-    // Rango de precio inicial: 0 a 100 (ajustar si tienes juegos más caros)
+    // Asumimos un rango máximo de 100€ para el Slider de ejemplo
     var priceRange by remember { mutableStateOf(0f..100f) }
 
-    // Lista original obtenida directamente del repositorio
+    // Lista original obtenida del repositorio
     val originalGames = remember { GameRepository().getAllGames() }
 
-    // Lista filtrada: Se recalcula cada vez que un estado observable cambia
+    // Lista filtrada: Recalculada cada vez que un estado (searchQuery, selectedSort, priceRange) cambia
     val filteredGames = remember(searchQuery, selectedSort, priceRange) {
         applyFiltersAndSearch(
             games = originalGames,
             searchQuery = searchQuery,
             sortOption = selectedSort,
-             priceRange = priceRange
+            priceRange = priceRange
         )
     }
 
@@ -89,10 +91,10 @@ fun ExploreScreen() {
 
             // --- Resultados de la Lista ---
             Text(
-               text = "${filteredGames.size} juegos encontrados",
+                text = "${filteredGames.size} juegos encontrados",
                 color = TextMuted,
                 modifier = Modifier.padding(bottom = 8.dp)
-           )
+            )
 
             LazyColumn(
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -120,7 +122,7 @@ fun ExploreScreen() {
     }
 }
 
-// --- LÓGICA DE FILTRADO Y BÚSQUEDA (FUNCIÓN CENTRAL) ---
+// --- LÓGICA DE FILTRADO Y BÚSQUEDA ---
 
 private fun applyFiltersAndSearch(
     games: List<Game>,
@@ -131,19 +133,19 @@ private fun applyFiltersAndSearch(
 
     var result = games.filter { game ->
 
-        // Filtrado por Búsqueda (nombre o descripción)
+        // 1. Filtrado por Búsqueda (nombre o descripción)
         val matchesSearch = searchQuery.isBlank() ||
                 game.name.contains(searchQuery, ignoreCase = true) ||
                 game.desc.contains(searchQuery, ignoreCase = true)
 
-        // Filtrado por Rango de Precio
+        // 2. Filtrado por Rango de Precio
         val price = game.price.toFloat()
         val matchesPriceRange = price >= priceRange.start && price <= priceRange.endInclusive
 
         matchesSearch && matchesPriceRange
     }
 
-    // Ordenamiento
+    // 3. Ordenamiento
     result = when (sortOption) {
         "Menor Precio" -> result.sortedBy { it.price }
         "Mayor Precio" -> result.sortedByDescending { it.price }
@@ -195,6 +197,7 @@ fun SearchAndFilterBar(
             modifier = Modifier.height(56.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
+            // Icono y Texto
             Icon(painterResource(id = R.drawable.explore_ico),
                 contentDescription = "Filtros", tint = TextLight)
             Spacer(modifier = Modifier.width(10.dp))
@@ -203,7 +206,7 @@ fun SearchAndFilterBar(
     }
 }
 
-// Modal de Filtros (Solo Precio)
+// --- Modal de Filtros (Solo Precio) ---
 
 @Composable
 fun FilterModalSheet(
@@ -246,12 +249,12 @@ fun FilterModalSheet(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Rango de Precio
+            // 1. Rango de Precio
             FilterSection(title = "Rango de Precio: $${priceRange.start.toInt()} - $${priceRange.endInclusive.toInt()}") {
                 Slider(
                     value = priceRange.start,
-                    // Se utiliza 100f como el máximo fijo del slider
                     onValueChange = { newValue ->
+                        // Mantenemos el máximo fijo en 100f para la simulación
                         onPriceRangeChange(newValue..100f)
                     },
                     valueRange = 0f..100f,
@@ -265,7 +268,7 @@ fun FilterModalSheet(
                 )
             }
 
-            // Ordenar por Precio
+            // 2. Ordenar por Precio
             FilterSection(title = "Ordenar por Precio") {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -298,7 +301,7 @@ fun FilterModalSheet(
     }
 }
 
-// Item de Resultado de Juego (Usa solo la clase Game)
+// --- Item de Resultado de Juego (Usa solo la clase Game) ---
 
 @Composable
 fun GameCardItem(game: Game) {
@@ -329,7 +332,7 @@ fun GameCardItem(game: Game) {
                 fontWeight = FontWeight.SemiBold,
                 color = TextLight
             )
-            // Descripción corta (usa la descripción de tu clase Game)
+            // Descripción corta
             Text(
                 text = game.desc,
                 style = MaterialTheme.typography.bodySmall,
@@ -350,7 +353,7 @@ fun GameCardItem(game: Game) {
 }
 
 
-// --- Componentes Auxiliares (FilterSection, FilterButton - sin cambios) ---
+// --- Componentes Auxiliares ---
 
 @Composable
 fun FilterSection(title: String, content: @Composable () -> Unit) {
@@ -387,7 +390,6 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewExploreScreen() {
-
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = PrimaryDarkBackground,
