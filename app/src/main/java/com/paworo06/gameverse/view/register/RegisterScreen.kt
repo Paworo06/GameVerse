@@ -28,7 +28,8 @@ val InputFieldBackground = Color(0xFF282038)
 
 @Composable
 fun SignupScreen(
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onRegistrationSuccess: () -> Unit
 ) {
     // Definimos variables de estado dummy *LOCAMENTE* dentro de esta función
     // para que los TextFields puedan aceptar la entrada del usuario,
@@ -62,7 +63,7 @@ fun SignupScreen(
                 modifier = Modifier.padding(bottom = 40.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.login_logo ),
+                    painter = painterResource(id = R.drawable.login_logo),
                     contentDescription = "GameVerse Logo",
                     modifier = Modifier.size(32.dp)
                 )
@@ -132,7 +133,10 @@ fun SignupScreen(
             // Botón de REGISTRO
             Button(
                 // onClick no hace nada real, solo imprime un mensaje
-                onClick = { println("Botón Registrarse presionado (Sin lógica)") },
+                onClick = {
+                    println("Botón Registrarse presionado (Sin lógica)")
+                    onRegistrationSuccess()
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -161,7 +165,7 @@ fun SignupScreen(
                 color = PrimaryActionButton,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onNavigateToLogin()}
+                modifier = Modifier.clickable { onNavigateToLogin() }
             )
         }
     }
@@ -213,11 +217,16 @@ fun LoginInputField(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSignupScreen() {
-    MaterialTheme(colorScheme = darkColorScheme(
-        background = PrimaryDarkBackground,
-        onBackground = TextLight,
-        primary = PrimaryActionButton
-    )) {
-        SignupScreen(onNavigateToLogin = {})
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            background = PrimaryDarkBackground,
+            onBackground = TextLight,
+            primary = PrimaryActionButton
+        )
+    ) {
+        SignupScreen(
+            onNavigateToLogin = {},
+            onRegistrationSuccess = {}
+        )
     }
 }

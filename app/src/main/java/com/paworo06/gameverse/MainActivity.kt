@@ -113,9 +113,8 @@ fun MainAppStructure() {
         )
     } else if (currentScreen == ScreenState.Register.route) {
         SignupScreen(
-            onNavigateToLogin = {
-                currentScreen = ScreenState.Login.route
-            }
+            onNavigateToLogin = { currentScreen = ScreenState.Login.route },
+            onRegistrationSuccess = { currentScreen = ScreenState.Home.route } // <-- ¡DEBE ESTAR ASÍ!
         )
     }
 }
