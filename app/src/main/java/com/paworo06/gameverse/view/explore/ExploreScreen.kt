@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -22,11 +23,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext // Importado para usar Context en Toast
 
 // Importaciones de tus modelos y repositorio
 import com.paworo06.gameverse.R
 import com.paworo06.gameverse.data.logic.GameRepository
 import com.paworo06.gameverse.data.model.Game
+import com.paworo06.gameverse.data.logic.CartManager // Importado para gestionar el carrito
 
 // --- CONSTANTES DE COLOR ---
 val PrimaryDarkBackground = Color(0xFF191121)
@@ -39,6 +42,8 @@ val HighlightButtonActive = Color(0xFF8C30E8)
 // Opciones de ordenamiento (solo precio)
 val sortOptionsPrice = listOf("Menor Precio", "Mayor Precio")
 
+// Instancia global del CartManager para compartir estado (temporalmente, idealmente inyectado)
+val cartManager = CartManager()
 
 @Composable
 fun ExploreScreen() {
@@ -101,7 +106,10 @@ fun ExploreScreen() {
             ) {
                 // Renderizamos la lista filtrada
                 items(filteredGames) { game ->
-                    GameCardItem(game = game)
+                    GameCardItem(game = game, onAddToCart = { selectedGame ->
+                        // Agregar al carrito usando la instancia global
+                        cartManager.addGame(selectedGame, 1)
+                    })
                 }
             }
         }
@@ -304,8 +312,8 @@ fun FilterModalSheet(
 // --- Item de Resultado de Juego (Usa solo la clase Game) ---
 
 @Composable
-fun GameCardItem(game: Game) {
-
+fun GameCardItem(game: Game, onAddToCart: (Game) -> Unit) {
+    val context = LocalContext.current // Contexto para el Toast
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -325,7 +333,7 @@ fun GameCardItem(game: Game) {
         Spacer(modifier = Modifier.width(16.dp))
 
         // Detalles
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = game.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -338,7 +346,8 @@ fun GameCardItem(game: Game) {
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(end = 16.dp)
             )
             // Precio
             Text(
@@ -348,6 +357,25 @@ fun GameCardItem(game: Game) {
                 color = TextLight
             )
         }
+
+        // Botón con signo +
+        FilledIconButton(
+            onClick = {
+                onAddToCart(game)
+                android.widget.Toast.makeText(context, "${game.name} añadido al carrito", android.widget.Toast.LENGTH_SHORT).show()
+            },
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = PrimaryActionButton
+            ),
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar",
+                tint = TextLight
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
     }
     Divider(color = SecondaryDark)
 }

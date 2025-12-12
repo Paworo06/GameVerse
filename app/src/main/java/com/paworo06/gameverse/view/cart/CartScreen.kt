@@ -14,9 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paworo06.gameverse.data.logic.GameRepository
 import com.paworo06.gameverse.data.model.CartItem
-import com.paworo06.gameverse.data.model.Game
+import com.paworo06.gameverse.view.explore.cartManager
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -28,37 +27,28 @@ val TextMuted = Color(0xFFCCCCCC)
 val ControlButtonBackground = Color(0xFF333333)
 
 @Composable
-fun CartScreen(
-    gameRepository: GameRepository = GameRepository() // Inyectamos el repositorio
-) {
-    // 1. CARGA INICIAL: Usamos los juegos del repositorio para poblar el carrito.
-    // Creamos la lista inicial usando map para convertir cada Game en un CartItem con cantidad 1.
-    val initialCartItems = remember {
-        gameRepository.getAllGames().map { game ->
-            CartItem(game = game, quanty = 1)
-        }
-    }
+fun CartScreen() {
+    // 1. ESTADO DEL CARRITO: Inicializamos el estado obteniendo los ítems del CartManager global.
+    // Usamos toList() para crear una copia y asegurar que Compose detecte cambios si la lista muta.
+    var cartItems by remember { mutableStateOf(cartManager.getCartItems().toList()) }
 
-    // 2. ESTADO DEL CARRITO: Inicializamos el estado con la lista creada arriba.
-    var cartItems by remember { mutableStateOf(initialCartItems) }
-
-    // 3. LÓGICA CENTRAL: Función para actualizar la cantidad de un ítem.
+    // 2. LÓGICA CENTRAL: Función para actualizar la cantidad de un ítem.
     fun updateQuantity(itemId: Int, newQuantity: Int) {
-        cartItems = cartItems.map { item ->
-            if (item.game.id == itemId) {
-                item.copy(quanty = newQuantity)
-            } else {
-                item
-            }
-        }
+        // Actualizamos el manager global
+        cartManager.updateQuantity(itemId, newQuantity)
+        // Actualizamos el estado local para recomponer la UI
+        cartItems = cartManager.getCartItems().toList()
     }
 
-    // 4. LÓGICA CENTRAL: Función para eliminar un ítem.
+    // 3. LÓGICA CENTRAL: Función para eliminar un ítem.
     fun removeItem(itemId: Int) {
-        cartItems = cartItems.filter { it.game.id != itemId }
+        // Eliminamos del manager global
+        cartManager.removeGame(itemId)
+        // Actualizamos el estado local
+        cartItems = cartManager.getCartItems().toList()
     }
 
-    // 5. Cálculo del subtotal
+    // 4. Cálculo del subtotal
     val subtotal = calculateTotal(cartItems)
 
     // ESTRUCTURA PRINCIPAL DE LA PANTALLA
@@ -81,61 +71,79 @@ fun CartScreen(
         )
 
         // --- CONTENIDO: LISTA DE ÍTEMS ---
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
-            cartItems.forEach { cartItem ->
-                CartItemRowStyledV3(
-                    cartItem = cartItem,
-                    onQuantityChange = { newQ -> updateQuantity(cartItem.game.id, newQ) },
-                    onRemove = { removeItem(cartItem.game.id) }
+        if (cartItems.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "El carrito está vacío",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextMuted
                 )
-                HorizontalDivider(color = TextMuted.copy(alpha = 0.3f)) // Divider actualizado a HorizontalDivider
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                cartItems.forEach { cartItem ->
+                    CartItemRowStyledV3(
+                        cartItem = cartItem,
+                        onQuantityChange = { newQ -> updateQuantity(cartItem.game.id, newQ) },
+                        onRemove = { removeItem(cartItem.game.id) }
+                    )
+                    HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
+                }
             }
         }
 
         // --- RESUMEN DEL PAGO (Footer Fijo) ---
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-                .background(PrimaryDarkBackground)
-                .padding(vertical = 8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Total:",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = TextLight
-                )
-                Text(
-                    text = "€${subtotal.toPlainString()}",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = TextLight,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            HorizontalDivider(color = TextMuted.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 10.dp))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Button(
-                onClick = { println("Proceder al Pago Total: $subtotal") },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
+        // Solo mostramos el footer si hay items
+        if (cartItems.isNotEmpty()) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp),
-                contentPadding = PaddingValues(12.dp)
+                    .padding(top = 16.dp)
+                    .background(PrimaryDarkBackground)
+                    .padding(vertical = 8.dp)
             ) {
-                Text("FINALIZAR COMPRA", color = TextLight, fontWeight = FontWeight.SemiBold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Total:",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextLight
+                    )
+                    Text(
+                        text = "€${subtotal.toPlainString()}",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = TextLight,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                HorizontalDivider(color = TextMuted.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = { println("Proceder al Pago Total: $subtotal") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    Text("FINALIZAR COMPRA", color = TextLight, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }
@@ -226,8 +234,6 @@ private fun calculateTotal(items: List<CartItem>): BigDecimal {
 @Preview(showBackground = true)
 @Composable
 fun PreviewCartScreen() {
-    // Nota: El Preview mostrará los datos reales si GameRepository funciona sin contexto,
-    // o puedes pasar un repositorio mock si GameRepository fuera más complejo.
     MaterialTheme(colorScheme = darkColorScheme(
         background = PrimaryDarkBackground,
         onBackground = TextLight,
