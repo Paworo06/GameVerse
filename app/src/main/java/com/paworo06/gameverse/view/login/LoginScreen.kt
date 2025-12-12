@@ -27,7 +27,7 @@ val TextMuted = Color(0xFFCCCCCC)
 val InputFieldBackground = Color(0xFF282038)
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen() {
     var usernameOrEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -99,17 +99,13 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
         // Botón de LOGIN
         Button(
-            onClick = { println("Intento de Login con $usernameOrEmail")
-                onLoginSuccess()
-                      },
+            onClick = { println("Intento de Login con $usernameOrEmail") },
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryActionButton),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             shape = RoundedCornerShape(10.dp)
-
         ) {
-
             Text("Login", color = TextLight, fontWeight = FontWeight.SemiBold)
         }
 
@@ -190,6 +186,6 @@ fun PreviewLoginScreen() {
         primary = PrimaryActionButton
     )) {
         // Llama a LoginScreen, que usará la imagen gracias a la magia de la Preview
-        LoginScreen(onLoginSuccess = {})
+        LoginScreen()
     }
 }
